@@ -4,6 +4,30 @@
 
 {% block content %}
     <h1 class="mb-4">My Subscriptions</h1>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get">
+                <div class="row">
+                    <div class="col-md-6">
+                        <input type="text" name="q" class="form-control" placeholder="Search by name..." value="{{ request.GET.q }}">
+                    </div>
+                    <div class="col-md-4">
+                        <select name="category" class="form-select">
+                            <option value="">All Categories</option>
+                            {% for category in categories %}
+                                <option value="{{ category.id }}" {% if request.GET.category == category.id|stringformat:"s" %}selected{% endif %}>{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary w-100">Search</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div class="card">
         <div class="card-body">
             <table class="table table-hover">
@@ -11,6 +35,7 @@
                     <tr>
                         <th><i class="fas fa-file-signature"></i> Name</th>
                         <th><i class="fas fa-dollar-sign"></i> Price</th>
+                        <th><i class="fas fa-tags"></i> Category</th>
                         <th><i class="fas fa-redo"></i> Billing Cycle</th>
                         <th><i class="fas fa-calendar-day"></i> Next Billing Date</th>
                     </tr>
@@ -20,12 +45,13 @@
                         <tr>
                             <td>{{ subscription.name }}</td>
                             <td>${{ subscription.price }}</td>
+                            <td>{{ subscription.category.name|default:"-" }}</td>
                             <td>{{ subscription.get_billing_cycle_display }}</td>
                             <td>{{ subscription.next_billing_date|date:"M d, Y" }}</td>
                         </tr>
                     {% empty %}
                         <tr>
-                            <td colspan="4" class="text-center">No subscriptions found.</td>
+                            <td colspan="5" class="text-center">No subscriptions found.</td>
                         </tr>
                     {% endfor %}
                 </tbody>

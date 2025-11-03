@@ -12,7 +12,21 @@ from django.http import JsonResponse
 @login_required(login_url='/subscriptions/login/')
 def subscription_list(request):
     subscriptions = Subscription.objects.filter(user=request.user)
-    return render(request, 'subscriptions/subscription_list.html', {'subscriptions': subscriptions})
+    categories = Category.objects.filter(user=request.user)
+
+    query = request.GET.get('q')
+    if query:
+        subscriptions = subscriptions.filter(name__icontains=query)
+
+    category_id = request.GET.get('category')
+    if category_id:
+        subscriptions = subscriptions.filter(category_id=category_id)
+
+    context = {
+        'subscriptions': subscriptions,
+        'categories': categories,
+    }
+    return render(request, 'subscriptions/subscription_list.html', context)
 
 @login_required(login_url='/subscriptions/login/')
 def monthly_subscriptions(request):
