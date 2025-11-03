@@ -1,14 +1,19 @@
 from django import forms
-from .models import Subscription
+from .models import Subscription, Category
 from django.contrib.auth.models import User
 
 class SubscriptionForm(forms.ModelForm):
     class Meta:
         model = Subscription
-        fields = ['name', 'price', 'billing_cycle', 'next_billing_date']
+        fields = ['name', 'price', 'category', 'billing_cycle', 'next_billing_date']
         widgets = {
             'next_billing_date': forms.DateInput(attrs={'type': 'date'})
         }
+
+class CategoryForm(forms.ModelForm):
+    class Meta:
+        model = Category
+        fields = ['name']
 
 class UserRegistrationForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput)

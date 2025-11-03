@@ -2,10 +2,11 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm
-from .models import Subscription
-from .forms import SubscriptionForm, UserRegistrationForm
+from .models import Subscription, Category
+from .forms import SubscriptionForm, UserRegistrationForm, CategoryForm
 from datetime import date
 from dateutil.relativedelta import relativedelta
+from django.db.models import Sum
 
 @login_required(login_url='/subscriptions/login/')
 def subscription_list(request):
@@ -29,10 +30,10 @@ def dashboard(request):
     upcoming_bills = subscriptions.filter(next_billing_date__gte=date.today()).order_by('next_billing_date')
     overdue_bills = subscriptions.filter(next_billing_date__lt=date.today()).order_by('next_billing_date')
 
-    monthly_spending_only = sum(sub.price for sub in subscriptions if sub.billing_cycle == 'monthly')
-    yearly_spending_only = sum(sub.price for sub in subscriptions if sub.billing_cycle == 'annually')
-    weekly_spending_only = sum(sub.price for sub in subscriptions if sub.billing_cycle == 'weekly')
-    daily_spending_only = sum(sub.price for sub in subscriptions if sub.billing_cycle == 'daily')
+    monthly_spending_only = subscriptions.filter(billing_cycle='monthly').aggregate(Sum('price'))['price__sum'] or 0
+    yearly_spending_only = subscriptions.filter(billing_cycle='annually').aggregate(Sum('price'))['price__sum'] or 0
+    weekly_spending_only = subscriptions.filter(billing_cycle='weekly').aggregate(Sum('price'))['price__sum'] or 0
+    daily_spending_only = subscriptions.filter(billing_cycle='daily').aggregate(Sum('price'))['price__sum'] or 0
 
     # Calculate total monthly spending including prorated yearly, weekly, and daily
     monthly_spending = monthly_spending_only + (yearly_spending_only / 12) + (weekly_spending_only * 4) + (daily_spending_only * 30)
@@ -40,12 +41,21 @@ def dashboard(request):
     # Calculate total yearly spending including prorated monthly, weekly, and daily
     yearly_spending = yearly_spending_only + (monthly_spending_only * 12) + (weekly_spending_only * 52) + (daily_spending_only * 365)
 
+    # Calculate spending by category
+    category_spending = []
+    categories = Category.objects.filter(user=request.user)
+    for category in categories:
+        category_subscriptions = subscriptions.filter(category=category)
+        total_price = category_subscriptions.aggregate(Sum('price'))['price__sum'] or 0
+        category_spending.append({'category': category.name, 'total_price': total_price})
+
     context = {
         'total_subscriptions': total_subscriptions,
         'upcoming_bills': upcoming_bills,
         'overdue_bills': overdue_bills,
         'monthly_spending': round(monthly_spending, 2),
         'yearly_spending': round(yearly_spending, 2),
+        'category_spending': category_spending,
     }
     return render(request, 'subscriptions/dashboard.html', context)
 
@@ -53,6 +63,7 @@ def dashboard(request):
 def add_subscription(request):
     if request.method == 'POST':
         form = SubscriptionForm(request.POST)
+        form.fields['category'].queryset = Category.objects.filter(user=request.user)
         if form.is_valid():
             subscription = form.save(commit=False)
             subscription.user = request.user
@@ -60,6 +71,7 @@ def add_subscription(request):
             return redirect('subscriptions:subscription_list')
     else:
         form = SubscriptionForm()
+        form.fields['category'].queryset = Category.objects.filter(user=request.user)
     return render(request, 'subscriptions/add_subscription.html', {'form': form})
 
 @login_required(login_url='/subscriptions/login/')
@@ -81,6 +93,40 @@ def mark_as_paid(request, subscription_id):
     subscription.next_billing_date = new_next_billing_date
     subscription.save()
     return redirect('subscriptions:dashboard')
+
+@login_required(login_url='/subscriptions/login/')
+def category_list(request):
+    categories = Category.objects.filter(user=request.user)
+    if request.method == 'POST':
+        form = CategoryForm(request.POST)
+        if form.is_valid():
+            category = form.save(commit=False)
+            category.user = request.user
+            category.save()
+            return redirect('subscriptions:category_list')
+    else:
+        form = CategoryForm()
+    return render(request, 'subscriptions/category_list.html', {'categories': categories, 'form': form})
+
+@login_required(login_url='/subscriptions/login/')
+def category_edit(request, category_id):
+    category = get_object_or_404(Category, id=category_id, user=request.user)
+    if request.method == 'POST':
+        form = CategoryForm(request.POST, instance=category)
+        if form.is_valid():
+            form.save()
+            return redirect('subscriptions:category_list')
+    else:
+        form = CategoryForm(instance=category)
+    return render(request, 'subscriptions/category_edit.html', {'form': form})
+
+@login_required(login_url='/subscriptions/login/')
+def category_delete(request, category_id):
+    category = get_object_or_404(Category, id=category_id, user=request.user)
+    if request.method == 'POST':
+        category.delete()
+        return redirect('subscriptions:category_list')
+    return render(request, 'subscriptions/category_delete.html', {'category': category})
 
 def register(request):
     if request.method == 'POST':

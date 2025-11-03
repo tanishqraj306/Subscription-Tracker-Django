@@ -57,6 +57,9 @@
                             <a class="nav-link" href="{% url 'subscriptions:add_subscription' %}"><i class="fas fa-plus"></i> Add Subscription</a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link" href="{% url 'subscriptions:category_list' %}"><i class="fas fa-tags"></i> Categories</a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link" href="{% url 'subscriptions:logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a>
                         </li>
                     {% else %}
