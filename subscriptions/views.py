@@ -7,7 +7,8 @@ from .forms import SubscriptionForm, UserRegistrationForm, CategoryForm
 from datetime import date
 from dateutil.relativedelta import relativedelta
 from django.db.models import Sum
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
+import csv
 
 @login_required(login_url='/subscriptions/login/')
 def subscription_list(request):
@@ -27,6 +28,26 @@ def subscription_list(request):
         'categories': categories,
     }
     return render(request, 'subscriptions/subscription_list.html', context)
+
+@login_required(login_url='/subscriptions/login/')
+def export_subscriptions_csv(request):
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="subscriptions.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(['Name', 'Price', 'Category', 'Billing Cycle', 'Next Billing Date'])
+
+    subscriptions = Subscription.objects.filter(user=request.user)
+    for subscription in subscriptions:
+        writer.writerow([
+            subscription.name,
+            subscription.price,
+            subscription.category.name if subscription.category else '-',
+            subscription.get_billing_cycle_display(),
+            subscription.next_billing_date,
+        ])
+
+    return response
 
 @login_required(login_url='/subscriptions/login/')
 def monthly_subscriptions(request):

@@ -6,6 +6,7 @@ app_name = 'subscriptions'
 urlpatterns = [
     path('', views.dashboard, name='dashboard'),
     path('list/', views.subscription_list, name='subscription_list'),
+    path('export/csv/', views.export_subscriptions_csv, name='export_subscriptions_csv'),
     path('monthly/', views.monthly_subscriptions, name='monthly_subscriptions'),
     path('yearly/', views.yearly_subscriptions, name='yearly_subscriptions'),
     path('add/', views.add_subscription, name='add_subscription'),

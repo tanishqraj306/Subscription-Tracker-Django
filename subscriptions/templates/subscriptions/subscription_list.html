@@ -3,7 +3,10 @@
 {% block title %}My Subscriptions{% endblock %}
 
 {% block content %}
-    <h1 class="mb-4">My Subscriptions</h1>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>My Subscriptions</h1>
+        <a href="{% url 'subscriptions:export_subscriptions_csv' %}" class="btn btn-success"><i class="fas fa-file-csv"></i> Export to CSV</a>
+    </div>
 
     <div class="card mb-4">
         <div class="card-body">
