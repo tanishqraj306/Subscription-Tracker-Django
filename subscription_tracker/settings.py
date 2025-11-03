@@ -129,3 +129,6 @@ DEFAULT_FROM_EMAIL = 'webmaster@localhost'
 LOGIN_URL = '/subscriptions/login/'
 LOGIN_REDIRECT_URL = '/subscriptions/dashboard/'
 LOGOUT_REDIRECT_URL = '/subscriptions/login/'
+
+# Subscription settings
+REMINDER_DAYS = 7

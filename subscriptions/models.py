@@ -21,6 +21,7 @@ class Subscription(models.Model):
     ]
     billing_cycle = models.CharField(max_length=10, choices=BILLING_CYCLE_CHOICES)
     next_billing_date = models.DateField()
+    reminder_sent_date = models.DateField(null=True, blank=True)
 
     def __str__(self):
         return self.name
