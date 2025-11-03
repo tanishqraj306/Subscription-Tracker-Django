@@ -1,0 +1,37 @@
+{% extends 'subscriptions/base.html' %}
+
+{% block title %}Add Subscription{% endblock %}
+
+{% block content %}
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h1 class="card-title text-center mb-4">Add New Subscription</h1>
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="id_name" class="form-label"><i class="fas fa-file-signature"></i> Name</label>
+                            {{ form.name }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="id_price" class="form-label"><i class="fas fa-dollar-sign"></i> Price</label>
+                            {{ form.price }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="id_billing_cycle" class="form-label"><i class="fas fa-redo"></i> Billing Cycle</label>
+                            {{ form.billing_cycle }}
+                        </div>
+                        <div class="mb-3">
+                            <label for="id_next_billing_date" class="form-label"><i class="fas fa-calendar-day"></i> Next Billing Date</label>
+                            {{ form.next_billing_date }}
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">Add Subscription</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

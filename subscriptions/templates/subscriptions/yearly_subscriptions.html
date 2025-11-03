@@ -1,0 +1,35 @@
+{% extends 'subscriptions/base.html' %}
+
+{% block title %}Yearly Subscriptions{% endblock %}
+
+{% block content %}
+    <h1 class="mb-4">Yearly Subscriptions</h1>
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th><i class="fas fa-file-signature"></i> Name</th>
+                        <th><i class="fas fa-dollar-sign"></i> Price</th>
+                        <th><i class="fas fa-redo"></i> Billing Cycle</th>
+                        <th><i class="fas fa-calendar-day"></i> Next Billing Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for subscription in subscriptions %}
+                        <tr>
+                            <td>{{ subscription.name }}</td>
+                            <td>${{ subscription.price }}</td>
+                            <td>{{ subscription.get_billing_cycle_display }}</td>
+                            <td>{{ subscription.next_billing_date|date:"M d, Y" }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center">No yearly subscriptions found.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}
