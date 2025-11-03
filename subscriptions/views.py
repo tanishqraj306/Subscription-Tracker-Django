@@ -7,6 +7,7 @@ from .forms import SubscriptionForm, UserRegistrationForm, CategoryForm
 from datetime import date
 from dateutil.relativedelta import relativedelta
 from django.db.models import Sum
+from django.http import JsonResponse
 
 @login_required(login_url='/subscriptions/login/')
 def subscription_list(request):
@@ -58,6 +59,18 @@ def dashboard(request):
         'category_spending': category_spending,
     }
     return render(request, 'subscriptions/dashboard.html', context)
+
+@login_required(login_url='/subscriptions/login/')
+def category_spending_chart_data(request):
+    subscriptions = Subscription.objects.filter(user=request.user)
+    category_spending = []
+    categories = Category.objects.filter(user=request.user)
+    for category in categories:
+        category_subscriptions = subscriptions.filter(category=category)
+        total_price = category_subscriptions.aggregate(Sum('price'))['price__sum'] or 0
+        category_spending.append({'category': category.name, 'total_price': float(total_price)})
+
+    return JsonResponse({'category_spending': category_spending})
 
 @login_required(login_url='/subscriptions/login/')
 def add_subscription(request):
